@@ -4,6 +4,7 @@ import { useFormik } from "formik";
 import { FiEyeOff } from "react-icons/fi";
 import { FiEye } from "react-icons/fi";
 import { useState } from "react";
+import axios from "axios";
 
 const initialValues = {
   name: "",
@@ -28,9 +29,13 @@ const SignUpForm = () => {
   const formik = useFormik({
     initialValues,
     validationSchema: signUpSchema,
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       formik.resetForm();
-      console.log("Form values", values);
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/register`,
+        values
+      );
+      console.log(res.data);
     },
   });
 
