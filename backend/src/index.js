@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
 
 require("dotenv").config();
 
@@ -92,6 +93,63 @@ app.post("/otprequest", async (req, res) => {
     });
 });
 
+app.post("/signinotp", async (req, res) => {
+  const requestedUser = await req.body;
+  const { customAlphabet } = await import("nanoid");
+  knex("users")
+    .where("email", requestedUser.email)
+    .then((users) => {
+      if (users.length > 0) {
+        const nanoid = customAlphabet("1234567890", 10);
+        const otp = nanoid(4);
+        // await sendOTPEmail(requestedUser.email, otp);
+        console.log("OTP", otp);
+        tempOtp = otp;
+        res
+          .status(200)
+          .json({ success: true, message: "OTP sent successfully!" });
+      } else {
+        res.status(200).json({
+          success: false,
+          message: "No such account found",
+        });
+        return;
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+});
+
+app.post("/login/:loginOtp", async (req, res) => {
+  const loginOtp = req.params.loginOtp;
+  const signInUser = await req.body;
+  const login = async () => {
+    knex("users")
+      .where("email", signInUser.email)
+      .then((users) => {
+        if (users.length > 0) {
+          tempOtp = "";
+          res.status(200).json({
+            success: true,
+            message: "Login successfull!",
+            user: users[0],
+          });
+        }
+      })
+      .catch((error) => {
+        res.status(400).json({ success: false, message: "Login failed!" });
+        console.log(error.message);
+      });
+  };
+  if (tempOtp === loginOtp) {
+    login();
+    return;
+  } else {
+    res.json({ message: "Incorrect OTP" });
+  }
+});
+
 app.post("/register/:otp", async (req, res) => {
   const userOtp = req.params.otp;
   console.log("user otp", userOtp);
@@ -115,16 +173,8 @@ app.post("/register/:otp", async (req, res) => {
     registration();
     return;
   } else {
-    res.json({ message: "OTP doesn't match" });
+    res.json({ message: "Incorrect OTP" });
   }
-});
-
-app.post("/login", async (req, res) => {
-  const loggedUser = await req.body;
-  console.log(loggedUser);
-  res
-    .status(200)
-    .json({ success: true, message: "User logged in successfully" });
 });
 
 app.listen(port, () => {

@@ -201,7 +201,6 @@ const SignUpForm = () => {
                   {showOtp ? <FiEye /> : <FiEyeOff />}
                 </span>
               </div>
-              <p className="h-4 text-xs text-red-500 sm:h-7 sm:text-base"></p>
             </div>
           ) : null}
 
