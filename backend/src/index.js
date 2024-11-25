@@ -66,39 +66,54 @@ app.get("/", (req, res) => {
 
 app.post("/otprequest", async (req, res) => {
   const requestedUser = await req.body;
-  try {
-    const { customAlphabet } = await import("nanoid");
-    const nanoid = customAlphabet("1234567890", 10);
-    const otp = nanoid(4);
-    // await sendOTPEmail(requestedUser.email, otp);
-    console.log("OTP", otp);
-    tempOtp = otp;
-    res.status(200).json({ message: "OTP sent successfully!" });
-  } catch (error) {
-    console.log(error.message);
-  }
+  const { customAlphabet } = await import("nanoid");
+  knex("users")
+    .where("email", requestedUser.email)
+    .then((users) => {
+      if (users.length > 0) {
+        res.status(200).json({
+          success: false,
+          message: "Account already exists",
+        });
+        return;
+      } else {
+        const nanoid = customAlphabet("1234567890", 10);
+        const otp = nanoid(4);
+        // await sendOTPEmail(requestedUser.email, otp);
+        console.log("OTP", otp);
+        tempOtp = otp;
+        res
+          .status(200)
+          .json({ success: true, message: "OTP sent successfully!" });
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 });
 
 app.post("/register/:otp", async (req, res) => {
   const userOtp = req.params.otp;
+  console.log("user otp", userOtp);
+
   const newUser = await req.body;
   const registration = async () => {
     try {
-      // check for existing user
       const { nanoid } = await import("nanoid");
       const userToken = nanoid(10);
       newUser.token = userToken;
       await knex("users").insert(newUser);
       console.log(newUser);
       tempOtp = "";
-      res.status(200).json({ message: "Sign up successfull!" });
+      res.status(200).json({ success: true, message: "Sign up successfull!" });
     } catch (error) {
-      res.status(400).json({ message: "Registration failed!" });
+      res.status(400).json({ success: false, message: "Registration failed!" });
       console.log(error.message);
     }
   };
   if (tempOtp === userOtp) {
     registration();
+    return;
   } else {
     res.json({ message: "OTP doesn't match" });
   }
@@ -107,7 +122,9 @@ app.post("/register/:otp", async (req, res) => {
 app.post("/login", async (req, res) => {
   const loggedUser = await req.body;
   console.log(loggedUser);
-  res.status(200).json({ message: "User logged in successfully" });
+  res
+    .status(200)
+    .json({ success: true, message: "User logged in successfully" });
 });
 
 app.listen(port, () => {

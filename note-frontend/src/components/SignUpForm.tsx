@@ -46,10 +46,13 @@ const SignUpForm = () => {
           `${import.meta.env.VITE_BACKEND_URL}/otprequest`,
           values
         );
-        if (res.status === 200) {
+        if (res.data.success) {
           setIsSuccess(true);
           setIsError(false);
           setSuccessMsg(res.data.message);
+        }
+        if (!res.data.success) {
+          setErrorMsg(res.data.message);
         }
         console.log(res.data);
       } catch (error) {
@@ -155,7 +158,7 @@ const SignUpForm = () => {
                 showIcon
                 toggleCalendarOnIconClick
                 selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
+                onChange={(date: any) => setSelectedDate(date)}
                 className="w-full outline-none"
                 dateFormat="MMMM d, yyyy"
                 required
@@ -170,7 +173,7 @@ const SignUpForm = () => {
               type="email"
               name="email"
               id="email"
-              value={formik.values.email}
+              value={formik.values.email.toLowerCase()}
               onChange={formik.handleChange}
               className="block w-full px-4 py-2 border-2 rounded-md focus:placeholder:invisible group/email focus:outline-blue-500"
             />
