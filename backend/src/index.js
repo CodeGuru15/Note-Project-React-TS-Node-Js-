@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const port = process.env.BACKEND_SERVER_PORT;
+const secret = process.env.JWT_KEY;
 
 const app = express();
 app.use(cors({ origin: "*" }));
@@ -61,8 +62,49 @@ const sendOTPEmail = async (toEmail, otp) => {
   console.log(info.response);
 };
 
+const generateToken = (user) => {
+  const payload = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+  };
+  return jwt.sign(payload, secret, { expiresIn: "1h" });
+};
+
+const verifyToken = async (token) => {
+  if (!token) {
+    return null;
+  }
+  try {
+    return jwt.verify(token, secret);
+  } catch (error) {
+    return null;
+  }
+};
+
 app.get("/", (req, res) => {
   res.status(200).send("Hello World");
+});
+
+app.post("/getuser", async (req, res) => {
+  const authHeader = req.header("Authorization");
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "Unauthorized" });
+  } else {
+    const authToken = authHeader.split(" ")[1];
+    if (!authToken) {
+      return res.status(401).json({ message: "Access denied" });
+    }
+    try {
+      const decoded = await verifyToken(authToken);
+      // console.log(decoded);
+      res.status(200).json({ message: "Authorized", user: decoded });
+    } catch (err) {
+      console.error(err);
+      res.status(401).json({ message: "Invalid token" });
+    }
+  }
 });
 
 app.post("/otprequest", async (req, res) => {
@@ -124,16 +166,18 @@ app.post("/signinotp", async (req, res) => {
 app.post("/login/:loginOtp", async (req, res) => {
   const loginOtp = req.params.loginOtp;
   const signInUser = await req.body;
-  const login = async () => {
+  const handleLogin = async () => {
     knex("users")
       .where("email", signInUser.email)
       .then((users) => {
         if (users.length > 0) {
           tempOtp = "";
+          const accessToken = generateToken(users[0]);
+          // console.log(accessToken);
           res.status(200).json({
             success: true,
             message: "Login successfull!",
-            user: users[0],
+            accessToken,
           });
         }
       })
@@ -143,7 +187,7 @@ app.post("/login/:loginOtp", async (req, res) => {
       });
   };
   if (tempOtp === loginOtp) {
-    login();
+    handleLogin();
     return;
   } else {
     res.json({ message: "Incorrect OTP" });

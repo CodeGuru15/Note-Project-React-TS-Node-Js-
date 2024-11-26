@@ -57,8 +57,7 @@ const SignInForm = () => {
           { email: useremail }
         );
         if (res.status === 200) {
-          localStorage.setItem("loggedUser", JSON.stringify(res.data.user));
-          // console.log(res.data.user);
+          localStorage.setItem("accessToken", res.data.accessToken);
 
           setTimeout(() => {
             setUserEmail("");
@@ -67,7 +66,7 @@ const SignInForm = () => {
             setSuccessMsg(res.data.message);
             setErrorMsg("");
             setIsLoading(false);
-            // navigate("/dashboard");
+            navigate("/dashboard");
           }, 2000);
         }
       } catch (error) {

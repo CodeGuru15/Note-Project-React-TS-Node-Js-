@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 interface myUser {
   name: string;
   email: string;
-  dob: string;
-  id: number;
-  token: string;
 }
 
 const Dashboard = () => {
@@ -14,9 +12,6 @@ const Dashboard = () => {
   const [loggedUser, setLoggedUser] = useState<myUser>({
     name: "",
     email: "",
-    dob: "",
-    id: 0,
-    token: "",
   });
   const [isLogged, setIsLogged] = useState(false);
 
@@ -26,21 +21,39 @@ const Dashboard = () => {
     setLoggedUser({
       name: "",
       email: "",
-      dob: "",
-      id: 0,
-      token: "",
     });
   };
 
+  const getUser = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+
+    if (accessToken) {
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/getuser`,
+          null,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        // console.log(res.data.user);
+        setLoggedUser(res.data.user);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      console.log("Access Denied");
+    }
+  };
+
   useEffect(() => {
-    const user: any = localStorage.getItem("loggedUser");
-    if (user != null) {
-      setLoggedUser(JSON.parse(user));
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      getUser();
       setIsLogged(true);
     } else {
       navigate("/login");
     }
   }, [isLogged]);
+
   return (
     <div className="flex flex-col items-center w-screen p-5">
       <div className="flex items-center justify-between w-full gap-2 pt-5 md:pt-0">
@@ -48,6 +61,7 @@ const Dashboard = () => {
           <img src="small_icon.svg" alt="icon" className="" />
           <h1 className="text-2xl ">Dashboard</h1>
         </div>
+
         {isLogged ? (
           <button
             onClick={handleSignOut}
