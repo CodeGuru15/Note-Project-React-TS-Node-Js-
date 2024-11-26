@@ -8,6 +8,7 @@ import axios from "axios";
 import Loader from "./Loader";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useNavigate } from "react-router-dom";
 
 const initialValues = {
   name: "",
@@ -32,6 +33,7 @@ const SignUpForm = () => {
   const [otp, setOtp] = useState("");
   const [newUser, setNewUser] = useState({});
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues,
@@ -78,6 +80,8 @@ const SignUpForm = () => {
           newUser
         );
         if (res.status === 200) {
+          localStorage.setItem("accessToken", res.data.accessToken);
+
           setTimeout(() => {
             formik.resetForm();
             setSelectedDate(new Date());
@@ -87,6 +91,7 @@ const SignUpForm = () => {
             setSuccessMsg(res.data.message);
             setErrorMsg("");
             setIsLoading(false);
+            navigate("/dashboard");
           }, 2000);
         }
         console.log(res.data);
@@ -184,7 +189,7 @@ const SignUpForm = () => {
             </p>
           </div>
           {isSuccess ? (
-            <div className="flex flex-col">
+            <div className="flex flex-col mt-5">
               <div className="flex items-center justify-between w-full border-2 rounded-md focus-within:border-blue-500 focus-within:border-2 ">
                 <input
                   type={showOtp ? "text" : "password"}

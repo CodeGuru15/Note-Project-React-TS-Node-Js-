@@ -56,7 +56,7 @@ const SignInForm = () => {
           `${import.meta.env.VITE_BACKEND_URL}/login/${userOtp}`,
           { email: useremail }
         );
-        if (res.status === 200) {
+        if (res.data.success) {
           localStorage.setItem("accessToken", res.data.accessToken);
 
           setTimeout(() => {
@@ -68,6 +68,13 @@ const SignInForm = () => {
             setIsLoading(false);
             navigate("/dashboard");
           }, 2000);
+        }
+        if (!res.data.success) {
+          setTimeout(() => {
+            setErrorMsg("Wrong OTP");
+            setUserOtp("");
+            setIsLoading(false);
+          }, 1000);
         }
       } catch (error) {
         console.log(error);

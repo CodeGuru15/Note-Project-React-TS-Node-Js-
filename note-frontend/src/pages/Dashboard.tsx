@@ -9,6 +9,9 @@ interface myUser {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [isNote, setIsNote] = useState(false);
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState("");
   const [loggedUser, setLoggedUser] = useState<myUser>({
     name: "",
     email: "",
@@ -44,6 +47,12 @@ const Dashboard = () => {
     }
   };
 
+  const handleNote = () => {
+    console.log(newNote);
+    setIsNote(false);
+    setNewNote("");
+  };
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -75,15 +84,32 @@ const Dashboard = () => {
         <>
           <div className="flex flex-col items-start w-[80%] sm:w-[60%] md:w-[40%] justify-center px-5 py-6 mt-10 border rounded-lg shadow-sm border-slate-300 shadow-slate-400">
             <h1 className="text-2xl font-bold ">
-              Welcome, <span>{loggedUser.name}!</span>
+              Welcome, <span>{loggedUser.name.toUpperCase()}!</span>
             </h1>
             <p className="py-2">
               Email: <span>{loggedUser.email}</span>
             </p>
           </div>
+          {isNote ? (
+            <div className="flex gap-5 pt-5">
+              <input
+                type="text"
+                required
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                className="block w-full px-4 py-2 border-2 rounded-md border-slate-300 focus:placeholder:invisible group/email focus:outline-blue-500"
+              />
+              <button
+                onClick={handleNote}
+                className="px-3 font-semibold text-center text-white bg-blue-500 rounded-xl sm:text-base hover:bg-blue-600"
+              >
+                ADD
+              </button>
+            </div>
+          ) : null}
           <div className="flex justify-center w-full">
             <button
-              type="submit"
+              onClick={() => setIsNote(true)}
               className=" w-[80%] sm:w-[60%] md:w-[30%] py-4 mt-5 font-semibold text-center text-white bg-blue-500 rounded-xl sm:text-base hover:bg-blue-600"
             >
               Create Note

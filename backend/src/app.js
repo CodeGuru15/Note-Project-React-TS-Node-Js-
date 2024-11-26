@@ -188,9 +188,8 @@ app.post("/login/:loginOtp", async (req, res) => {
   };
   if (tempOtp === loginOtp) {
     handleLogin();
-    return;
   } else {
-    res.json({ message: "Incorrect OTP" });
+    res.status(200).json({ success: false, message: "Wrong OTP!" });
   }
 });
 
@@ -205,9 +204,12 @@ app.post("/register/:otp", async (req, res) => {
       const userToken = nanoid(10);
       newUser.token = userToken;
       await knex("users").insert(newUser);
-      console.log(newUser);
+      // console.log(newUser);
+      const accessToken = jwt.sign(newUser, secret, { expiresIn: "1h" });
       tempOtp = "";
-      res.status(200).json({ success: true, message: "Sign up successfull!" });
+      res
+        .status(200)
+        .json({ success: true, message: "Sign up successfull!", accessToken });
     } catch (error) {
       res.status(400).json({ success: false, message: "Registration failed!" });
       console.log(error.message);

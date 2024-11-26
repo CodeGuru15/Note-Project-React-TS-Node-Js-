@@ -11,6 +11,6 @@
     "nodemon": "^3.1.7"
   },
   "scripts": {
-    "start": "nodemon ./src/index.js"
+    "start": "nodemon ./src/app.js"
   }
 }
