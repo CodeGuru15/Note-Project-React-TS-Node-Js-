@@ -5,7 +5,7 @@ const Note = ({ id, title, handleClick }) => {
   const [isDelete, setIsDelete] = useState(false);
 
   return (
-    <div className="relative flex items-center justify-between w-full p-2 border rounded-md shadow-sm shadow-slate-300">
+    <div className="relative flex items-center justify-between w-full p-2 rounded-md shadow-custom shadow-slate-300">
       <span className="truncate ">{title}</span>
       {!isDelete && (
         <button

@@ -137,6 +137,13 @@ const Dashboard = () => {
     }
   };
 
+  const formatEmail = (email: any) => {
+    const [username, domain] = email.split("@");
+    const [domain1, domain2] = domain.split(".");
+    const formattedUsername = username.replace(/./g, "X");
+    return `${formattedUsername}@${domain1.replace(/./g, "X")}.${domain2}`;
+  };
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -172,15 +179,12 @@ const Dashboard = () => {
       </div>
       {isLogged ? (
         <>
-          <div className="flex flex-col items-start w-[80%] sm:w-[60%] md:w-[40%] justify-center px-5 py-6 mt-10 border rounded-lg shadow-sm border-slate-300 shadow-slate-400">
+          <div className="flex flex-col items-start w-[80%] sm:w-[60%] md:w-[40%] justify-center px-5 py-6 mt-10 rounded-lg shadow-custom shadow-slate-300">
             <h1 className="font-bold sm:text-2xl ">
-              Welcome,{" "}
-              <span className="text-blue-500 ">
-                {loggedUser.name.toUpperCase()}!
-              </span>
+              Welcome, <span>{loggedUser.name.toUpperCase()} !</span>
             </h1>
             <p className="py-2">
-              Email: <span>{loggedUser.email}</span>
+              Email: <span>{formatEmail(loggedUser.email)}</span>
             </p>
           </div>
           {isNote ? (
@@ -188,6 +192,7 @@ const Dashboard = () => {
               <input
                 type="text"
                 required
+                autoFocus
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 className="block w-full px-4 py-2 border-2 rounded-md border-slate-300 focus:placeholder:invisible group/email focus:outline-blue-500"
