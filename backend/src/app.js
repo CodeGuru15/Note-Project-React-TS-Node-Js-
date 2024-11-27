@@ -241,6 +241,37 @@ app.post("/addnote", async (req, res) => {
   }
 });
 
+app.post("/getNotes", async (req, res) => {
+  const authHeader = req.header("Authorization");
+  const userId = await req.body.id;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "Unauthorized" });
+  } else {
+    const authToken = authHeader.split(" ")[1];
+    if (!authToken) {
+      return res.status(401).json({ message: "Access denied" });
+    }
+    try {
+      const decoded = await verifyToken(authToken);
+      // console.log(decoded);
+      if (decoded) {
+        let userNotes = [];
+        const allNotes = async () => {
+          await knex("note_lists")
+            .where("user_id", userId)
+            .then((notes) => (userNotes = notes));
+          res.status(200).json({ success: true, userNotes });
+        };
+        allNotes();
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(401).json({ success: false, message: "Invalid token" });
+    }
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });

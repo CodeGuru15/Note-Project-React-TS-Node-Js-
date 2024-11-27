@@ -2,11 +2,17 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { RxCross1 } from "react-icons/rx";
+import Note from "../components/Note";
 
 interface myUser {
   id: number;
   name: string;
   email: string;
+}
+
+interface myNote {
+  id: number;
+  title: string;
 }
 
 const Dashboard = () => {
@@ -85,14 +91,37 @@ const Dashboard = () => {
     }
   };
 
+  const getAllNotes = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/getnotes`,
+          { id: loggedUser.id },
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (res.data.success) {
+          setNotes(res.data.userNotes);
+        } else {
+          setErrorMsg(res.data.message);
+        }
+      } catch (error) {
+        setErrorMsg("Something Went Wrong");
+        console.error(error);
+      }
+    }
+  };
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
       getUser();
+      getAllNotes();
     } else {
       navigate("/login");
     }
-  }, [isLogged]);
+    console.log("hi");
+  }, [isLogged, notes.length]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -108,7 +137,6 @@ const Dashboard = () => {
           <img src="small_icon.svg" alt="icon" className="" />
           <h1 className="text-2xl ">Dashboard</h1>
         </div>
-
         {isLogged ? (
           <button
             onClick={handleSignOut}
@@ -172,9 +200,20 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-2">
             <p className="text-xl font-semibold">Notes</p>
           </div>
+          {notes.length > 1 ? (
+            <div className="flex flex-col-reverse w-full gap-2">
+              {notes.map((note: myNote) => {
+                return (
+                  <div key={note.id}>
+                    <Note title={note.title} />
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
         </>
       ) : (
         <Link to="/login">Login</Link>
