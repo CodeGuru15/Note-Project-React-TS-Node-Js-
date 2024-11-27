@@ -39,30 +39,6 @@ const Dashboard = () => {
     });
   };
 
-  const handleSubmitNote = async () => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      try {
-        const res = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/addnote`,
-          { user_id: loggedUser.id, title: newNote },
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
-        if (res.data.success) {
-          setSuccessMsg(res.data.message);
-        } else {
-          setErrorMsg(res.data.message);
-        }
-      } catch (error) {
-        setErrorMsg("Something Went Wrong");
-        console.error(error);
-      }
-    }
-
-    setIsNote(false);
-    setNewNote("");
-  };
-
   const getUser = async () => {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -112,6 +88,55 @@ const Dashboard = () => {
     }
   };
 
+  const handleSubmitNote = async () => {
+    if (newNote.length > 2) {
+      const accessToken = localStorage.getItem("accessToken");
+      if (accessToken) {
+        try {
+          const res = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/addnote`,
+            { user_id: loggedUser.id, title: newNote },
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          if (res.data.success) {
+            setSuccessMsg(res.data.message);
+            getAllNotes();
+          } else {
+            setErrorMsg(res.data.message);
+          }
+        } catch (error) {
+          setErrorMsg("Something Went Wrong");
+          console.error(error);
+        }
+      }
+      setIsNote(false);
+      setNewNote("");
+    } else {
+      setErrorMsg("Please enter minimum 3 character");
+    }
+  };
+
+  const deleteNote = async (id: any) => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/deletenote`,
+          { id: id },
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (res.data.success) {
+          setSuccessMsg(res.data.message);
+          getAllNotes();
+        } else {
+          setErrorMsg(res.data.message);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -120,8 +145,7 @@ const Dashboard = () => {
     } else {
       navigate("/login");
     }
-    console.log("hi");
-  }, [isLogged, notes.length]);
+  }, [isLogged]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -150,7 +174,10 @@ const Dashboard = () => {
         <>
           <div className="flex flex-col items-start w-[80%] sm:w-[60%] md:w-[40%] justify-center px-5 py-6 mt-10 border rounded-lg shadow-sm border-slate-300 shadow-slate-400">
             <h1 className="font-bold sm:text-2xl ">
-              Welcome, <span>{loggedUser.name.toUpperCase()}!</span>
+              Welcome,{" "}
+              <span className="text-blue-500 ">
+                {loggedUser.name.toUpperCase()}!
+              </span>
             </h1>
             <p className="py-2">
               Email: <span>{loggedUser.email}</span>
@@ -166,6 +193,7 @@ const Dashboard = () => {
                 className="block w-full px-4 py-2 border-2 rounded-md border-slate-300 focus:placeholder:invisible group/email focus:outline-blue-500"
               />
               <button
+                type="submit"
                 onClick={handleSubmitNote}
                 className="px-3 font-semibold text-center text-white bg-blue-500 rounded-xl sm:text-base hover:bg-blue-600"
               >
@@ -203,12 +231,16 @@ const Dashboard = () => {
           <div className="w-full mb-2">
             <p className="text-xl font-semibold">Notes</p>
           </div>
-          {notes.length > 1 ? (
+          {notes.length > 0 ? (
             <div className="flex flex-col-reverse w-full gap-2">
               {notes.map((note: myNote) => {
                 return (
                   <div key={note.id}>
-                    <Note title={note.title} />
+                    <Note
+                      title={note.title}
+                      id={note.id}
+                      handleClick={() => deleteNote(note.id)}
+                    />
                   </div>
                 );
               })}
@@ -216,7 +248,13 @@ const Dashboard = () => {
           ) : null}
         </>
       ) : (
-        <Link to="/login">Login</Link>
+        <div>
+          Please{" "}
+          <span>
+            <Link to="/login">Login</Link>
+          </span>
+          to continue
+        </div>
       )}
     </div>
   );

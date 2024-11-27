@@ -272,6 +272,44 @@ app.post("/getNotes", async (req, res) => {
   }
 });
 
+app.post("/deletenote", async (req, res) => {
+  const authHeader = req.header("Authorization");
+  const noteId = await req.body.id;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "Unauthorized" });
+  } else {
+    const authToken = authHeader.split(" ")[1];
+    if (!authToken) {
+      return res.status(401).json({ message: "Access denied" });
+    }
+    try {
+      const decoded = await verifyToken(authToken);
+      if (decoded) {
+        // console.log(noteId);
+
+        const deleteNote = async () => {
+          await knex("note_lists")
+            .where("id", noteId)
+            .delete()
+            .then(() => {
+              res
+                .status(200)
+                .json({ success: true, message: "Note deleted successfully" });
+            })
+            .catch((error) => {
+              console.error("Error deleting note:", error);
+            });
+        };
+        deleteNote();
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(401).json({ success: false, message: "Invalid token" });
+    }
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
