@@ -26,21 +26,6 @@ const knex = require("knex")({
   },
 });
 
-// knex.schema
-//   .createTable("users", (table) => {
-//     table.increments("id").primary();
-//     table.string("name");
-//     table.string("dob");
-//     table.string("email");
-//     table.string("token");
-//   })
-//   .then(() => {
-//     console.log("table created successfully!");
-//   })
-//   .catch((error) => {
-//     console.error(error);
-//   });
-
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
@@ -62,7 +47,7 @@ const sendOTPEmail = async (toEmail, otp) => {
   console.log(info.response);
 };
 
-const generateToken = (user) => {
+const generateAccessToken = (user) => {
   const payload = {
     id: user.id,
     name: user.name,
@@ -99,10 +84,12 @@ app.post("/getuser", async (req, res) => {
     try {
       const decoded = await verifyToken(authToken);
       // console.log(decoded);
-      res.status(200).json({ message: "Authorized", user: decoded });
+      res
+        .status(200)
+        .json({ success: true, message: "Authorized", user: decoded });
     } catch (err) {
       console.error(err);
-      res.status(401).json({ message: "Invalid token" });
+      res.status(401).json({ success: false, message: "Invalid token" });
     }
   }
 });
@@ -172,7 +159,7 @@ app.post("/login/:loginOtp", async (req, res) => {
       .then((users) => {
         if (users.length > 0) {
           tempOtp = "";
-          const accessToken = generateToken(users[0]);
+          const accessToken = generateAccessToken(users[0]);
           // console.log(accessToken);
           res.status(200).json({
             success: true,
@@ -220,6 +207,37 @@ app.post("/register/:otp", async (req, res) => {
     return;
   } else {
     res.json({ message: "Incorrect OTP" });
+  }
+});
+
+app.post("/addnote", async (req, res) => {
+  const authHeader = req.header("Authorization");
+  const newNote = req.body;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "Unauthorized" });
+  } else {
+    const authToken = authHeader.split(" ")[1];
+    if (!authToken) {
+      return res.status(401).json({ message: "Access denied" });
+    }
+    try {
+      const decoded = await verifyToken(authToken);
+      if (decoded) {
+        // console.log(newNote);
+        await knex("note_lists").insert(newNote);
+        res
+          .status(200)
+          .json({ success: true, message: "Note Created Successfully" });
+      } else {
+        res
+          .status(200)
+          .json({ success: false, message: "Something Went Wrong" });
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(401).json({ success: false, message: "Invalid token" });
+    }
   }
 });
 

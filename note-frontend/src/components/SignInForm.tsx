@@ -159,7 +159,7 @@ const SignInForm = () => {
             <input type="checkbox" name="" id="" />
             <span>Keep me logged in</span>
           </div>
-          {isLoading ? (
+          {isLoading && !isError ? (
             <div className="flex justify-center w-full py-4 rounded-xl">
               <Loader />
             </div>
