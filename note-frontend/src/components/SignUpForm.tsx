@@ -189,7 +189,7 @@ const SignUpForm = () => {
             </p>
           </div>
           {isSuccess ? (
-            <div className="flex flex-col mt-5">
+            <div className="flex flex-col">
               <div className="flex items-center justify-between w-full border-2 rounded-md focus-within:border-blue-500 focus-within:border-2 ">
                 <input
                   type={showOtp ? "text" : "password"}

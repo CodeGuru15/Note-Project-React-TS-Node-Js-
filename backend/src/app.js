@@ -109,7 +109,7 @@ app.post("/otprequest", async (req, res) => {
       } else {
         const nanoid = customAlphabet("1234567890", 10);
         const otp = nanoid(4);
-        // await sendOTPEmail(requestedUser.email, otp);
+        sendOTPEmail(requestedUser.email, otp);
         console.log("OTP", otp);
         tempOtp = otp;
         res
@@ -131,7 +131,7 @@ app.post("/signinotp", async (req, res) => {
       if (users.length > 0) {
         const nanoid = customAlphabet("1234567890", 10);
         const otp = nanoid(4);
-        // await sendOTPEmail(requestedUser.email, otp);
+        sendOTPEmail(requestedUser.email, otp);
         console.log("OTP", otp);
         tempOtp = otp;
         res

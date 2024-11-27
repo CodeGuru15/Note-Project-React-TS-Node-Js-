@@ -82,7 +82,6 @@ const Dashboard = () => {
           setErrorMsg(res.data.message);
         }
       } catch (error) {
-        setErrorMsg("Something Went Wrong");
         console.error(error);
       }
     }
