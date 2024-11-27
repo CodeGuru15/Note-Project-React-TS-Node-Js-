@@ -1,7 +1,15 @@
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { useState } from "react";
 
-const Note = ({ id, title, handleClick }) => {
+const Note = ({
+  id,
+  title,
+  handleClick,
+}: {
+  id: number;
+  title: string;
+  handleClick: () => void;
+}) => {
   const [isDelete, setIsDelete] = useState(false);
 
   return (
