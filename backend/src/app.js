@@ -26,6 +26,63 @@ const knex = require("knex")({
   },
 });
 
+// knex.schema
+//   .createTableIfNotExists("users", (table) => {
+//     table.increments("id").primary();
+//     table.string("name");
+//     table.string("dob");
+//     table.string("email");
+//     table.string("token");
+//   })
+//   .then(() => {
+//     console.log("User table created successfully!");
+//   })
+//   .catch((error) => {
+//     console.error(error);
+//   });
+
+// knex.schema
+//   .createTableIfNotExists("note_lists", (table) => {
+//     table.increments("id").primary();
+//     table.integer("user_id").notNullable();
+//     table.string("title", 255).notNullable();
+//   })
+//   .then(() => {
+//     console.log("Note table created successfully!");
+//   })
+//   .catch((error) => {
+//     console.error("Error creating table:", error);
+//   });
+
+// knex.schema.alterTable("note_lists", (table) => {
+//   table
+//     .foreign("user_id")
+//     .references("id")
+//     .inTable("users")
+//     .then(() => {
+//       console.log("Foreign key constraint added successfully!");
+//     })
+//     .catch((error) => {
+//       console.error("Error adding foreign key constraint:", error);
+//     });
+// });
+
+// knex
+//   .raw(
+//     `
+//   CREATE TRIGGER create_note_after_user_creation
+// AFTER INSERT ON users
+// FOR EACH ROW
+// BEGIN
+//     INSERT INTO note_lists (user_id, title)
+//     VALUES (NEW.id, 'Welcome Note', 'Welcome to our note-taking app!');
+// END;
+// `
+//   )
+//   .then(() => {
+//     console.log("Trigger created");
+//   });
+
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
@@ -83,10 +140,11 @@ app.post("/getuser", async (req, res) => {
     }
     try {
       const decoded = await verifyToken(authToken);
-      // console.log(decoded);
+      const getUser = await knex("users").where("email", decoded.email);
+
       res
         .status(200)
-        .json({ success: true, message: "Authorized", user: decoded });
+        .json({ success: true, message: "Authorized", user: getUser[0] });
     } catch (err) {
       console.error(err);
       res.status(401).json({ success: false, message: "Invalid token" });
@@ -182,7 +240,6 @@ app.post("/login/:loginOtp", async (req, res) => {
 
 app.post("/register/:otp", async (req, res) => {
   const userOtp = req.params.otp;
-  console.log("user otp", userOtp);
 
   const newUser = await req.body;
   const registration = async () => {
@@ -226,6 +283,8 @@ app.post("/addnote", async (req, res) => {
       if (decoded) {
         // console.log(newNote);
         await knex("note_lists").insert(newNote);
+        console.log(newNote);
+
         res
           .status(200)
           .json({ success: true, message: "Note Created Successfully" });
@@ -256,11 +315,9 @@ app.post("/getNotes", async (req, res) => {
       const decoded = await verifyToken(authToken);
       // console.log(decoded);
       if (decoded) {
-        let userNotes = [];
         const allNotes = async () => {
-          await knex("note_lists")
-            .where("user_id", userId)
-            .then((notes) => (userNotes = notes));
+          const userNotes = await knex("note_lists").where("user_id", userId);
+
           res.status(200).json({ success: true, userNotes });
         };
         allNotes();

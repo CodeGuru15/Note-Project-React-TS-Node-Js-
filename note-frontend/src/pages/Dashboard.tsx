@@ -54,7 +54,7 @@ const Dashboard = () => {
           if (res.data.user === null) {
             handleSignOut();
           } else {
-            // console.log(res.data.user);
+            console.log(res.data.user);
             setIsLogged(true);
             setLoggedUser(res.data.user);
           }
